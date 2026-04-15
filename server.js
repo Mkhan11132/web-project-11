@@ -603,13 +603,13 @@ const adminRoutes = require('./admin.routes');
 app.use('/admin', adminRoutes);
 
 // ==========================================
-// 7. START SERVER (Local Development)
+// 7. START SERVER
 // ==========================================
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
-  });
-}
+const PORT = process.env.PORT || 3000;
 
-// Export for Vercel Serverless
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// Export for Vercel Serverless (if needed)
 module.exports = app;
