@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Order Product</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+
+<div class="container py-5">
+
+<h2 class="mb-4 fw-bold">Delivery Information</h2>
+
+<div class="card p-4 shadow">
+
+<h5 id="productName"></h5>
+<p class="text-success fw-bold">Price: PKR <span id="productPrice"></span></p>
+
+<form id="orderForm">
+
+<div class="row g-3">
+
+<div class="col-md-6">
+<label class="form-label">Full Name</label>
+<input type="text" class="form-control" required>
+</div>
+
+<div class="col-md-6">
+<label class="form-label">Phone Number</label>
+<input type="tel" class="form-control" required>
+</div>
+
+<div class="col-md-6">
+<label class="form-label">City</label>
+<input type="text" class="form-control" required>
+</div>
+
+<div class="col-md-6">
+<label class="form-label">State / Province</label>
+<input type="text" class="form-control" required>
+</div>
+
+<div class="col-md-6">
+<label class="form-label">Village / Area</label>
+<input type="text" class="form-control">
+</div>
+
+<div class="col-md-6">
+<label class="form-label">Landmark</label>
+<input type="text" class="form-control">
+</div>
+
+<div class="col-12">
+<label class="form-label">Full Address</label>
+<textarea class="form-control" rows="3" required></textarea>
+</div>
+
+<div class="col-12">
+<button class="btn btn-success w-100 mt-3">
+Confirm Order
+</button>
+</div>
+
+</div>
+
+</form>
+
+</div>
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+
+const product = params.get("product");
+const price = params.get("price");
+
+document.getElementById("productName").innerText = product;
+document.getElementById("productPrice").innerText = price;
+
+document.getElementById("orderForm").addEventListener("submit", function(e){
+
+e.preventDefault();
+
+alert("✅ Your order is confirmed! It will reach you soon.");
+
+this.reset();
+
+});
+
+</script>
+
+</body>
+</html>

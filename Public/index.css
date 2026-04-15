@@ -1,0 +1,200 @@
+/* ===== GLOBAL RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: #F8FAFC;
+  color: #334155;
+  overflow-x: hidden;
+}
+
+/* ===== NAVBAR ===== */
+.bg-dark-gray {
+  background-color: #0F172A !important;
+}
+.navbar-nav .nav-link {
+  font-weight: 500;
+  color: #CBD5E1 !important;
+  transition: 0.3s;
+}
+.navbar-nav .nav-link:hover {
+  color: #22C55E !important;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn.primary, .btn-primary-custom {
+  background: #2563EB;
+  color: #fff;
+  border: none;
+}
+.btn.primary:hover, .btn-primary-custom:hover {
+  background: #1D4ED8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* ===== HERO SECTION ===== */
+.hero {
+  min-height: 100vh;
+  background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)),
+              url('https://images.unsplash.com/photo-1559526324-593bc073d938');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding-top: 80px; 
+  color: #fff;
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+.hero h1 span {
+  color: #22C55E;
+}
+
+/* ===== HERO STATS ===== */
+.hero-stats div {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255,255,255, 0.1);
+  padding: 15px 25px;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  flex: 1;
+  min-width: 140px;
+}
+.hero-stats h3 {
+  color: #22C55E;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+.hero-stats p {
+  font-size: 14px;
+  color: #E5E7EB;
+  margin: 0;
+}
+
+/* ===== TEXT & COLORS ===== */
+.text-success-custom { color: #16A34A; }
+.section-title { color: #0F172A; }
+
+/* ===== STEP CARDS (How it Works) ===== */
+.step-card {
+  padding: 40px 25px;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+.step-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+}
+.step-icon {
+  font-size: 45px;
+  color: #2563EB;
+  margin-bottom: 15px;
+}
+.step-icon.success { color: #22C55E; }
+
+/* ===== PRICING CARDS ===== */
+.pricing-card {
+  padding: 40px 25px;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+.pricing-card ul {
+  list-style: none;
+  margin: 25px 0;
+}
+.pricing-card ul li {
+  margin: 15px 0;
+  font-size: 15px;
+}
+.price {
+  color: #0F172A;
+  font-weight: 800;
+  font-size: 2.5rem;
+}
+.featured {
+  border: 2px solid #2563EB !important;
+  transform: scale(1.05);
+  background-color: #ffffff;
+  z-index: 2;
+}
+.featured .badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2563EB;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* ===== FEATURE CARDS ===== */
+.feature-card {
+  padding: 30px 15px;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.feature-card i {
+  font-size: 35px;
+  color: #2563EB;
+  margin-bottom: 15px;
+  transition: 0.3s;
+}
+.feature-card:hover {
+  background: #2563EB;
+  color: #fff;
+  transform: translateY(-5px);
+}
+.feature-card:hover i, .feature-card:hover h6 {
+  color: #fff;
+}
+
+/* ===== FOOTER ===== */
+.footer a {
+  color: #94A3B8;
+  transition: 0.3s;
+}
+.footer a:hover {
+  color: #22C55E;
+}
+
+/* ===== MOBILE RESPONSIVENESS ===== */
+@media (max-width: 768px) {
+  .hero {
+    text-align: center;
+    padding-top: 120px;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+  .hero-buttons {
+    justify-content: center;
+  }
+  .hero-stats {
+    flex-direction: column;
+  }
+  .featured {
+    transform: scale(1);
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+}

@@ -1,0 +1,80 @@
+
+body {
+  background: linear-gradient(135deg, #0F172A, #1E293B);
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.bg-dark-gray { background-color: #0F172A; }
+
+/* ================= CARD ================= */
+.auth-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+}
+
+/* ================= TABS ================= */
+.nav-pills .nav-link {
+  border-radius: 10px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #2563EB;
+  color: #ffffff;
+}
+
+/* ================= INPUTS ================= */
+.form-control {
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+}
+
+.form-control:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 0.15rem rgba(37,99,235,0.25);
+}
+
+/* ================= BUTTON ================= */
+.btn-primary-custom {
+  background-color: #2563EB;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn-primary-custom:hover {
+  background-color: #1D4ED8;
+}
+
+/* ================= ICON INPUT ================= */
+.input-group-text {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px 0 0 10px;
+}
+
+/* ================= FOOTER ================= */
+footer {
+  color: #94A3B8;
+}
+
+footer a {
+  color: #CBD5E1;
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: #22C55E;
+}
+
+/* ================= RESPONSIVE ================= */
+@media(max-width: 576px){
+  .auth-card {
+    padding: 20px !important;
+  }
+}

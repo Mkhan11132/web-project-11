@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Withdraw Funds | Earn & Grow</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="dashboard.css" rel="stylesheet">
+</head>
+<body class="bg-light-custom">
+
+  <div class="container-fluid">
+    <div class="row">
+      <aside class="col-md-3 col-lg-2 bg-dark-gray sidebar p-3 d-flex flex-column shadow">
+        <h4 class="fw-bold mb-4 text-white text-center text-md-start mt-2">
+          <i class="fa-solid fa-chart-pie text-success-custom me-2"></i>Earn & Grow
+        </h4>
+        <ul class="nav flex-md-column flex-row flex-nowrap overflow-auto sidebar-nav pb-2 pb-md-0">
+          <li class="nav-item mb-md-2"><a class="nav-link" href="/dashboard"><i class="fa-solid fa-house me-2"></i>Dashboard</a></li>
+          <li class="nav-item mb-md-2"><a class="nav-link" href="/buy-product.html"><i class="fa-solid fa-cart-shopping me-2"></i>Buy Product</a></li>
+      
+          <li class="nav-item mb-md-2"><a class="nav-link active" href="/withdraw.html"><i class="fa-solid fa-money-bill-transfer me-2"></i>Withdraw</a></li>
+          <li class="nav-item mt-md-auto ms-auto ms-md-0"><a class="nav-link text-danger" href="/logout"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+        </ul>
+      </aside>
+
+      <main class="col-md-9 col-lg-10 p-4 main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="fw-bold mb-0">Withdraw Funds</h3>
+          <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm">Balance: PKR <span id="currentBalance">0.00</span></span>
+        </div>
+
+        <div class="row justify-content-center">
+          <div class="col-lg-6 col-md-8">
+            <div class="card p-4 shadow-sm border-0 mt-3">
+              <h5 class="fw-bold mb-4 text-center"><i class="fa-solid fa-building-columns text-primary me-2"></i>Submit Request</h5>
+              
+              <form id="withdrawForm">
+                <div class="mb-3">
+                  <label class="form-label text-muted fw-medium small">Account Holder Name</label>
+                  <input type="text" id="w_name" class="form-control" placeholder="Enter full name" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label text-muted fw-medium small">Payment Method</label>
+                  <select id="w_method" class="form-select" style="border-radius: 8px; padding: 12px;" required>
+                    <option value="" disabled selected>Select Bank / Wallet</option>
+                    <option value="Easypaisa">Easypaisa</option>
+                    <option value="JazzCash">JazzCash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label text-muted fw-medium small">Account / Phone Number</label>
+                  <input type="text" id="w_account" class="form-control" placeholder="e.g. 03001234567" required>
+                </div>
+
+                <div class="mb-4">
+                  <label class="form-label text-muted fw-medium small">Amount to Withdraw (PKR)</label>
+                  <input type="number" id="w_amount" class="form-control text-primary fw-bold" placeholder="0" min="1" required>
+                </div>
+
+                <div id="alertBox" class="alert d-none" role="alert"></div>
+
+                <button type="submit" class="btn btn-primary-custom w-100 py-3 rounded-pill fw-bold fs-6 shadow-sm">
+                  Request Withdrawal <i class="fa-solid fa-paper-plane ms-2"></i>
+                </button>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 1. Fetch current balance to display on top
+    fetch('/api/user-data')
+      .then(res => res.json())
+      .then(user => {
+        if(user.balance) document.getElementById('currentBalance').innerText = user.balance;
+      });
+
+    // 2. Handle form submission
+    document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const btn = e.target.querySelector('button');
+      const alertBox = document.getElementById('alertBox');
+      
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Processing...';
+      btn.disabled = true;
+      alertBox.classList.add('d-none');
+
+      const data = {
+        name: document.getElementById('w_name').value,
+        method: document.getElementById('w_method').value,
+        account_number: document.getElementById('w_account').value,
+        amount: document.getElementById('w_amount').value
+      };
+
+      try {
+        const res = await fetch('/api/withdraw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+
+        alertBox.classList.remove('d-none', 'alert-danger', 'alert-success');
+        
+        if (result.success) {
+          alertBox.classList.add('alert-success');
+          alertBox.innerHTML = '<i class="fa-solid fa-circle-check me-2"></i>' + result.message;
+          e.target.reset(); // Clear form
+          // Update balance visually
+          document.getElementById('currentBalance').innerText = (parseFloat(document.getElementById('currentBalance').innerText) - data.amount).toFixed(2);
+        } else {
+          alertBox.classList.add('alert-danger');
+          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-2"></i>' + result.error;
+        }
+      } catch (err) {
+        alertBox.classList.remove('d-none');
+        alertBox.classList.add('alert-danger');
+        alertBox.innerText = "Connection error. Please try again.";
+      } finally {
+        btn.innerHTML = 'Request Withdrawal <i class="fa-solid fa-paper-plane ms-2"></i>';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
