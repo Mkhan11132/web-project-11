@@ -1,13 +1,13 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config(); // This loads your hidden passwords
 
-// Fallback credentials for Railway MySQL
+// Fallback credentials for Clever-Cloud MySQL
 const DB_CONFIG = {
-  host: process.env.DB_HOST || 'mysql.railway.internal',
+  host: process.env.DB_HOST || 'bldm637x6gd2fsalwo71-mysql.services.clever-cloud.com',
   port: parseInt(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'SegpBEzPgHVqYmAgWbSrbAZxrHiGOKdF',
-  database: process.env.DB_NAME || 'railway',
+  user: process.env.DB_USER || 'ukqlqkghpqbt7mrh',
+  password: process.env.DB_PASSWORD || 'ukqlqkghpqbt7mrh',
+  database: process.env.DB_NAME || 'bldm637x6gd2fsalwo71',
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 0,
