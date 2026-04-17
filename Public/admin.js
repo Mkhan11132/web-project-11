@@ -8,6 +8,18 @@ async function loadUsers() {
   
   table.innerHTML = ""; // Clear table before loading
 
+  // Check if users is array (if error, it will be object)
+  if (!Array.isArray(users)) {
+    console.error('Error loading users:', users.error || 'Unknown error');
+    if (users.error === 'Login required') {
+      alert('Session expired. Please login again.');
+      window.location.href = '/admin/login';
+      return;
+    }
+    table.innerHTML = '<tr><td colspan="6" class="text-danger">Error loading users: ' + (users.error || 'Unknown error') + '</td></tr>';
+    return;
+  }
+
   users.forEach(user => {
     let statusBadge = user.status === 'active' ? 'bg-success' : 'bg-danger';
     
