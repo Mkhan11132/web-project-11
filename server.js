@@ -10,7 +10,7 @@
 
 
 // // middleware
-// app.use(express.static('public'));
+// app.use(express.static('Public'));
 // app.use(express.urlencoded({ extended: true }));
 // app.use(express.json());
 
@@ -42,7 +42,7 @@
 // });
 
 // // ✅ FIXED: adminRoutes ko function ki tarah CALL nahi karna
-// app.use(express.static('public'));
+// app.use(express.static('Public'));
 
 
 
@@ -55,15 +55,15 @@
 // // ---------------- ROUTES ----------------
 
 // app.get('/', (req, res) =>
-//   res.sendFile(path.join(__dirname, 'public', 'index.html'))
+//   res.sendFile(path.join(__dirname, 'Public', 'index.html'))
 // );
 
 // app.get('/register', (req, res) =>
-//   res.sendFile(path.join(__dirname, 'public', 'register.html'))
+//   res.sendFile(path.join(__dirname, 'Public', 'register.html'))
 // );
 
 // app.get('/login', (req, res) =>
-//   res.sendFile(path.join(__dirname, 'public', 'login.html'))
+//   res.sendFile(path.join(__dirname, 'Public', 'login.html'))
 // );
 
 
@@ -221,7 +221,7 @@
 //   if (!req.session.selectedPlan)
 //     return res.redirect('/buyplan');
 
-//   res.sendFile(path.join(__dirname,'public','payment.html'));
+//   res.sendFile(path.join(__dirname,'Public','payment.html'));
 // });
 
 
@@ -301,7 +301,7 @@ const app = express();
 // ==========================================
 // 1. MIDDLEWARE (Setup)
 // ==========================================
-app.use(express.static('public')); // Serves your CSS, JS, and Images
+app.use(express.static('Public')); // Serves your CSS, JS, and Images
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -315,7 +315,7 @@ app.use(session({
 // 2. PUBLIC PAGE ROUTES (No login required)
 // ==========================================
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'Public', 'index.html'));
 });
 
 // 1. UPDATED GET REGISTER ROUTE
@@ -324,11 +324,11 @@ app.get('/register', (req, res) => {
   if (req.query.ref) {
     req.session.pendingReferral = req.query.ref;
   }
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(path.join(__dirname, 'Public', 'login.html'));
 });
 
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(path.join(__dirname, 'Public', 'login.html'));
 });
 
 app.get('/admin/login', (req, res) => {
@@ -443,13 +443,13 @@ app.get('/logout', (req, res) => {
 // ==========================================
 app.get('/dashboard', (req, res) => {
   if (!req.session.userId) return res.redirect('/login');
-  const filePath = path.join(__dirname, 'public', 'dashboard.html');
+  const filePath = path.join(__dirname, 'Public', 'dashboard.html');
   res.sendFile(filePath);
 });
 
 app.get('/payment', (req, res) => {
   if (!req.session.selectedPlan) return res.redirect('/buyplan');
-  res.sendFile(path.join(__dirname,'public','payment.html'));
+  res.sendFile(path.join(__dirname,'Public','payment.html'));
 });
 
 
@@ -605,6 +605,11 @@ app.use('/admin', adminRoutes);
 // ==========================================
 // 7. START SERVER
 // ==========================================
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
+
+// Export for Vercel serverless
+module.exports = app;
