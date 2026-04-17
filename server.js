@@ -443,7 +443,7 @@ app.get('/logout', (req, res) => {
 // ==========================================
 app.get('/dashboard', (req, res) => {
   if (!req.session.userId) return res.redirect('/login');
-  const filePath = path.join(__dirname, 'Public', 'dashboard.html');
+  const filePath = path.join(__dirname, 'Public', 'Dashboard.html');
   res.sendFile(filePath);
 });
 
