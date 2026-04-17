@@ -3,17 +3,18 @@ const express = require("express");
 const router = express.Router();
 const mailer = require("./Public/mailer");
 
-// 🔐 ADMIN SECURITY
+// 🔐 ADMIN SECURITY (JWT Based)
 router.use(async (req, res, next) => {
-  if (!req.session.userId)
+  if (!req.userId)
     return res.status(401).json({ error: "Login required" });
 
-  const [rows] = await db.query("SELECT role FROM users WHERE id=?", [
-    req.session.userId,
-  ]);
-
-  if (!rows.length || rows[0].role !== "admin")
-    return res.status(403).json({ error: "Admin only" });
+  // Check if user is admin from JWT token
+  if (req.userRole !== "admin") {
+    // Fallback: check database if role not in token
+    const [rows] = await db.query("SELECT role FROM users WHERE id=?", [req.userId]);
+    if (!rows.length || rows[0].role !== "admin")
+      return res.status(403).json({ error: "Admin only" });
+  }
 
   next();
 });
