@@ -301,7 +301,7 @@ const app = express();
 // ==========================================
 // 1. MIDDLEWARE (Setup)
 // ==========================================
-app.use(express.static('Public')); // Serves your CSS, JS, and Images
+app.use(express.static(path.join(__dirname, 'Public'))); // Serves your CSS, JS, and Images
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
