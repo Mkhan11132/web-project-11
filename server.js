@@ -287,17 +287,19 @@
 // app.listen(3000, () =>
 //   console.log("Server running on http://localhost:3000")
 // );
-
 require('dotenv').config();
 const db = require('./db');
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const crypto = require('crypto');
 const cron = require('node-cron');
 const app = express();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
+const JWT_EXPIRES_IN = '24h';
 
 // ==========================================
 // 1. MIDDLEWARE (Setup)
@@ -305,40 +307,58 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'Public'))); // Serves your CSS, JS, and Images
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.set('trust proxy', 1);
 
-// MySQL Session Store for persistent sessions on Vercel
-const sessionStore = new MySQLStore({
-  host: process.env.DB_HOST || 'bldm637x6gd2fsalwo71-mysql.services.clever-cloud.com',
-  port: parseInt(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'ukqlqkghpqbt7mrh',
-  password: process.env.DB_PASSWORD || 'Hl321SPpmbZWxzpVftlm',
-  database: process.env.DB_NAME || 'bldm637x6gd2fsalwo71',
-  createDatabaseTable: true,
-  schema: {
-    tableName: 'sessions',
-    columnNames: {
-      session_id: 'session_id',
-      expires: 'expires',
-      data: 'data'
+// JWT Authentication Middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+  if (!token) {
+    // Check cookie as fallback
+    const cookieToken = req.cookies?.token;
+    if (!cookieToken) {
+      req.userId = null;
+      return next();
     }
+    return verifyToken(cookieToken, req, res, next);
   }
-});
+  
+  return verifyToken(token, req, res, next);
+}
 
-app.use(session({
-  name: 'sessionId',
-  secret: process.env.SESSION_SECRET || 'yourSecretKey',
-  resave: false,
-  saveUninitialized: false,
-  store: sessionStore,
-  cookie: {
-    secure: true,
-    sameSite: 'none',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    httpOnly: true
+function verifyToken(token, req, res, next) {
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      req.userId = null;
+    } else {
+      req.userId = user.userId;
+      req.userRole = user.role;
+    }
+    next();
+  });
+}
+
+function requireAuth(req, res, next) {
+  if (!req.userId) {
+    return res.status(401).json({ error: 'Login required' });
   }
-}));
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.userId) {
+    return res.status(401).json({ error: 'Login required' });
+  }
+  if (req.userRole !== 'admin') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+  next();
+}
+
+app.use(authenticateToken);
 
 // ==========================================
 // 2. PUBLIC PAGE ROUTES (No login required)
@@ -409,7 +429,8 @@ app.post('/register', async (req, res) => {
       [name, email, hashedPassword, referralCode, referrerId, 'pending']
     );
 
-    req.session.userId = result.insertId;
+    const token = jwt.sign({ userId: result.insertId, role: 'user' }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    res.cookie('token', token);
     res.redirect('/dashboard');
 
   } catch (err) {
@@ -429,7 +450,8 @@ app.post('/login', async (req, res) => {
 
   if (!match) return res.send("Invalid password");
 
-  req.session.userId = user.id;
+  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  res.cookie('token', token);
   res.redirect('/dashboard');
 });
 
@@ -450,7 +472,8 @@ app.post('/admin/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.send("Invalid password");
 
-    req.session.userId = user.id;
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    res.cookie('token', token);
     res.redirect('/admin');
 
   } catch (err) {
@@ -459,51 +482,45 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-// General Logout
+// Logout
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie('connect.sid');
-    res.redirect('/login');
-  });
+  res.clearCookie('token');
+  res.redirect('/login');
 });
 
 // ==========================================
 // 4. PROTECTED USER PAGES (Must be logged in)
 // ==========================================
-app.get('/dashboard', (req, res) => {
-  if (!req.session.userId) return res.redirect('/login');
+app.get('/dashboard', requireAuth, (req, res) => {
   const filePath = path.join(__dirname, 'Public', 'Dashboard.html');
   res.sendFile(filePath);
 });
 
-app.get('/payment', (req, res) => {
-  if (!req.session.selectedPlan) return res.redirect('/buyplan');
+app.get('/payment', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname,'Public','payment.html'));
 });
 
-
-app.get('/api/user-data', async (req, res) => {
-  if (!req.session.userId) return res.status(401).json({ error: "Login required" });
-
+// User Data API
+app.get('/api/user-data', requireAuth, async (req, res) => {
   try {
     // 1. Get basic user info
     const [users] = await db.query(
       "SELECT id, name, balance, status, referral_code, role FROM users WHERE id=?",
-      [req.session.userId]
+      [req.userId]
     );
     const user = users[0];
 
     // 2. Count Total Active Referrals
     const [referrals] = await db.query(
       "SELECT COUNT(*) as total FROM users WHERE referrer_id=? AND status='active'",
-      [req.session.userId]
+      [req.userId]
     );
     user.totalReferrals = referrals[0].total;
 
     // 3. Calculate Total Earnings (Sum of approved commissions)
     const [earnings] = await db.query(
       "SELECT SUM(amount) as total FROM commissions WHERE user_id=? AND status='approved'",
-      [req.session.userId]
+      [req.userId]
     );
     // If earnings[0].total is null (no earnings yet), set it to 0
     user.totalEarnings = earnings[0].total || 0; 
@@ -517,13 +534,12 @@ app.get('/api/user-data', async (req, res) => {
   }
 });
 
-
-app.get('/api/payment-history', async (req, res) => {
-  if (!req.session.userId) return res.status(401).json([]);
+// Payment History API
+app.get('/api/payment-history', requireAuth, async (req, res) => {
   try {
     const [payments] = await db.query(
       "SELECT amount, status, created_at FROM payments WHERE user_id=? ORDER BY created_at DESC", 
-      [req.session.userId]
+      [req.userId]
     );
     res.json(payments);
   } catch (error) {
@@ -533,15 +549,10 @@ app.get('/api/payment-history', async (req, res) => {
 });
 
 
-app.post("/submit-payment", async (req, res) => {
-  if (!req.session.userId) return res.status(401).json({ error: "Login required" });
-
+app.post("/submit-payment", requireAuth, async (req, res) => {
   try {
-    const { name, email, trx_id, amount, slip } = req.body;
+    const { name, email, trx_id, amount, slip, plan_id } = req.body;
     
-    // THE FIX: Grab the plan_id from the session memory, NOT the frontend form!
-    const plan_id = req.session.selectedPlan;
-
     if (!plan_id) {
       return res.status(400).json({ error: "No plan selected. Please go back and select a plan." });
     }
@@ -550,7 +561,7 @@ app.post("/submit-payment", async (req, res) => {
       `INSERT INTO payments 
       (user_id, plan_id, name, email, trx_id, amount, slip, status)
       VALUES (?,?,?,?,?,?,?,'pending')`,
-      [req.session.userId, plan_id, name, email, trx_id, amount, slip]
+      [req.userId, plan_id, name, email, trx_id, amount, slip]
     );
 
     res.json({ success: true });
@@ -561,15 +572,13 @@ app.post("/submit-payment", async (req, res) => {
 });
 
 
-app.post('/api/withdraw', async (req, res) => {
-  if (!req.session.userId) return res.status(401).json({ error: "Login required" });
-
+app.post('/api/withdraw', requireAuth, async (req, res) => {
   try {
     const { name, method, account_number, amount } = req.body;
     const withdrawAmount = parseFloat(amount);
 
     // 1. Get current user balance
-    const [users] = await db.query("SELECT balance FROM users WHERE id=?", [req.session.userId]);
+    const [users] = await db.query("SELECT balance FROM users WHERE id=?", [req.userId]);
     const user = users[0];
 
     // 2. Security Checks
@@ -577,13 +586,13 @@ app.post('/api/withdraw', async (req, res) => {
     if (withdrawAmount > user.balance) return res.status(400).json({ error: "Insufficient balance!" });
 
     // 3. Deduct balance immediately
-    await db.query("UPDATE users SET balance = balance - ? WHERE id=?", [withdrawAmount, req.session.userId]);
+    await db.query("UPDATE users SET balance = balance - ? WHERE id=?", [withdrawAmount, req.userId]);
 
     // 4. Save request in withdrawals table
     await db.query(
       `INSERT INTO withdrawals (user_id, name, payment_method, account_number, amount, status) 
        VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [req.session.userId, name, method, account_number, withdrawAmount]
+      [req.userId, name, method, account_number, withdrawAmount]
     );
 
     res.json({ success: true, message: "Withdrawal request submitted successfully!" });
@@ -594,7 +603,7 @@ app.post('/api/withdraw', async (req, res) => {
 });
 
 
-app.get('/admin/withdrawals', async (req, res) => {
+app.get('/admin/withdrawals', requireAdmin, async (req, res) => {
   try {
     const [withdrawals] = await db.query("SELECT * FROM withdrawals ORDER BY created_at DESC");
     res.json(withdrawals);
@@ -606,30 +615,18 @@ app.get('/admin/withdrawals', async (req, res) => {
 
 
 // Buy Plan Page
-app.get('/buyplan', (req, res) => {
-  if (!req.session.userId) return res.redirect('/login');
+app.get('/buyplan', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'Public', 'plan.html'));
 });
 
 // Select Plan
-app.post('/select-plan', (req, res) => {
-  if (!req.session.userId) return res.json({ success:false, error:'Login required' });
+app.post('/select-plan', requireAuth, (req, res) => {
   req.session.selectedPlan = req.body.planId;
   res.json({ success:true });
 });
 
-
-
 // Admin HTML Page Route
-app.get('/admin', async (req, res) => {
-  if (!req.session.userId) return res.redirect('/admin/login');
-
-  const [users] = await db.query("SELECT role FROM users WHERE id=?", [req.session.userId]);
-  
-  if (users.length === 0 || users[0].role !== 'admin') {
-    return res.send("Access Denied. Regular users cannot view this page.");
-  }
-
+app.get('/admin', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'Public', 'admin.html'));
 });
 
