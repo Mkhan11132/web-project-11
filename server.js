@@ -305,14 +305,18 @@ app.use(express.static(path.join(__dirname, 'Public'))); // Serves your CSS, JS,
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+app.set('trust proxy', 1);
 app.use(session({
+  name: 'sessionId',
   secret: process.env.SESSION_SECRET || 'yourSecretKey',
-  resave: false,
+  resave: true,
   saveUninitialized: true,
+  store: new session.MemoryStore(),
   cookie: {
     secure: true,
     sameSite: 'none',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true
   }
 }));
 
