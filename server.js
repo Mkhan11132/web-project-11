@@ -576,6 +576,12 @@ app.get('/admin/withdrawals', async (req, res) => {
 });
 
 
+// Buy Plan Page
+app.get('/buyplan', (req, res) => {
+  if (!req.session.userId) return res.redirect('/login');
+  res.sendFile(path.join(__dirname, 'Public', 'plan.html'));
+});
+
 // Select Plan
 app.post('/select-plan', (req, res) => {
   if (!req.session.userId) return res.json({ success:false, error:'Login required' });
