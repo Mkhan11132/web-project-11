@@ -308,23 +308,8 @@ app.use(express.json());
 
 app.set('trust proxy', 1);
 
-// MySQL Session Store for Vercel serverless
-const sessionStore = new MySQLStore({
-  host: process.env.DB_HOST || 'bldm637x6gd2fsalwo71-mysql.services.clever-cloud.com',
-  port: parseInt(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'ukqlqkghpqbt7mrh',
-  password: process.env.DB_PASSWORD || 'Hl321SPpmbZWxzpVftlm',
-  database: process.env.DB_NAME || 'bldm637x6gd2fsalwo71',
-  createDatabaseTable: true,
-  schema: {
-    tableName: 'sessions',
-    columnNames: {
-      session_id: 'session_id',
-      expires: 'expires',
-      data: 'data'
-    }
-  }
-});
+// Use existing db pool for session store
+const sessionStore = new MySQLStore({}, db);
 
 app.use(session({
   name: 'sessionId',
