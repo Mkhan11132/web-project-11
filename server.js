@@ -293,6 +293,7 @@ const db = require('./db');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const path = require('path');
 const crypto = require('crypto');
 const cron = require('node-cron');
@@ -307,12 +308,30 @@ app.use(express.json());
 
 app.set('trust proxy', 1);
 
-// Simple session config for Vercel (MemoryStore - sessions persist during single request chain)
+// MySQL Session Store for persistent sessions on Vercel
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST || 'bldm637x6gd2fsalwo71-mysql.services.clever-cloud.com',
+  port: parseInt(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || 'ukqlqkghpqbt7mrh',
+  password: process.env.DB_PASSWORD || 'Hl321SPpmbZWxzpVftlm',
+  database: process.env.DB_NAME || 'bldm637x6gd2fsalwo71',
+  createDatabaseTable: true,
+  schema: {
+    tableName: 'sessions',
+    columnNames: {
+      session_id: 'session_id',
+      expires: 'expires',
+      data: 'data'
+    }
+  }
+});
+
 app.use(session({
   name: 'sessionId',
   secret: process.env.SESSION_SECRET || 'yourSecretKey',
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
+  store: sessionStore,
   cookie: {
     secure: true,
     sameSite: 'none',
