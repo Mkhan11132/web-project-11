@@ -293,7 +293,6 @@ const db = require('./db');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
 const path = require('path');
 const crypto = require('crypto');
 const cron = require('node-cron');
@@ -308,15 +307,12 @@ app.use(express.json());
 
 app.set('trust proxy', 1);
 
-// Use existing db pool for session store
-const sessionStore = new MySQLStore({}, db);
-
+// Simple session config for Vercel (MemoryStore - sessions persist during single request chain)
 app.use(session({
   name: 'sessionId',
   secret: process.env.SESSION_SECRET || 'yourSecretKey',
-  resave: false,
-  saveUninitialized: false,
-  store: sessionStore,
+  resave: true,
+  saveUninitialized: true,
   cookie: {
     secure: true,
     sameSite: 'none',
