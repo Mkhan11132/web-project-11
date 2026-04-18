@@ -619,10 +619,17 @@ app.get('/buyplan', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'Public', 'plan.html'));
 });
 
-// Select Plan
-app.post('/select-plan', requireAuth, (req, res) => {
-  req.session.selectedPlan = req.body.planId;
-  res.json({ success:true });
+// Select Plan - Store in database or just confirm (plan_id now passed directly to submit-payment)
+app.post('/select-plan', requireAuth, async (req, res) => {
+  try {
+    const { planId } = req.body;
+    // Optionally store selected plan in user record for temporary tracking
+    await db.query("UPDATE users SET selected_plan_id = ? WHERE id = ?", [planId, req.userId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.log("Select plan error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // Admin HTML Page Route
